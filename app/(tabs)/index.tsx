@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -7,11 +8,10 @@ import { SleepScoreCard } from '@/components/SleepScoreCard';
 import { SleepTimer } from '@/components/SleepTimer';
 import { Colors } from '@/constants/colors';
 import { useSleepStore } from '@/store/sleepStore';
-import { useSleepSession } from '@/hooks/useSleepSession';
 
 export default function DashboardScreen() {
   const { lastSession, sleepTarget } = useSleepStore();
-  const { isTracking, startSleep, stopSleep } = useSleepSession();
+  const [isTracking, setIsTracking] = useState(false);
 
   return (
     <ThemedView style={styles.container}>
@@ -35,10 +35,9 @@ export default function DashboardScreen() {
           {/* Timer / tombol mulai tidur */}
           <SleepTimer
             isTracking={isTracking}
-            onStart={startSleep}
-            onStop={stopSleep}
+            onStart={() => setIsTracking(true)}
+            onStop={() => setIsTracking(false)}
           />
-
 
           {/* Info waktu tidur ideal */}
           <View style={styles.infoCard}>

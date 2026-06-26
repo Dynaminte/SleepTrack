@@ -1,6 +1,5 @@
-import { getApps, initializeApp, getApp } from 'firebase/app';
-import { Auth, initializeAuth, getAuth, Persistence } from 'firebase/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getApps, initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -14,30 +13,10 @@ const firebaseConfig = {
   measurementId: 'G-MCHE0WC0H0',
 };
 
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 
-/**
- * getReactNativePersistence hanya ada di bundle React Native:
- *   @firebase/auth/dist/rn/index.js
- * Di platform Web bundle tidak mengekspornya, sehingga kita coba
- * dengan try/catch agar aman di kedua platform (native & web).
- */
-let auth: Auth;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const rnAuth = require('@firebase/auth') as {
-    getReactNativePersistence: (storage: AsyncStorageStatic) => Persistence;
-  };
-  auth = initializeAuth(app, {
-    persistence: rnAuth.getReactNativePersistence(AsyncStorage),
-  });
-} catch {
-  // Web platform atau getReactNativePersistence tidak tersedia
-  auth = getAuth(app);
-}
-
-// Tipe AsyncStorage static untuk cast di atas
-type AsyncStorageStatic = typeof AsyncStorage;
+// Gunakan getAuth biasa untuk memastikan tidak ada hang di Android
+const auth = getAuth(app);
 
 export { auth };
 export const db = getFirestore(app);

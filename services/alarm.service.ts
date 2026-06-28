@@ -49,6 +49,9 @@ export async function scheduleAlarm(alarm: AlarmItem) {
   if (!hasNotificationSupport) return;
 
   try {
+    // Dynamic import to avoid crash on Expo Go SDK 53
+    const Notifications = require('expo-notifications');
+    
     const [hour, minute] = alarm.time.split(':').map(Number);
     const now = new Date();
     const next = new Date(now);
@@ -79,6 +82,7 @@ export async function cancelAllAlarms() {
   if (!hasNotificationSupport) return;
 
   try {
+    const Notifications = require('expo-notifications');
     await Notifications.cancelAllScheduledNotificationsAsync();
   } catch {
     // ignore in unsupported environments

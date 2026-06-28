@@ -6,12 +6,16 @@ import { useEffect } from 'react';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useSleepStore } from '@/store/sleepStore';
+import { useForegroundAlarm } from '@/hooks/useForegroundAlarm';
 
 // Mencegah splash screen menghilang otomatis sebelum aplikasi siap
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  
+  // Menjalankan pendeteksi alarm latar depan (untuk Expo Go)
+  useForegroundAlarm();
 
   useEffect(() => {
     // Menyembunyikan splash screen setelah memuat data dari storage

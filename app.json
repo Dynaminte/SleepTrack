@@ -4,6 +4,12 @@
     "slug": "sleeptrack",
     "version": "1.0.0",
     "scheme": "sleeptrack",
+    "icon": "./assets/images/icon-converted.png",
+    "splash": {
+      "image": "./assets/images/splash-icon-converted.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0f172a"
+    },
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
@@ -11,7 +17,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon-converted.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0f172a"
       },
       "package": "com.dynamite12.sleeptrack"
     },

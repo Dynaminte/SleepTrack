@@ -14,6 +14,7 @@ type SleepStore = {
   setDarkMode: (enabled: boolean) => void;
   setLastSession: (session: SleepSession) => void;
   setSessions: (sessions: SleepSession[]) => void;
+  resetSessions: () => void;
   loadFromStorage: () => Promise<void>;
 };
 
@@ -45,6 +46,10 @@ export const useSleepStore = create<SleepStore>((set, get) => ({
 
   setSessions: (sessions) => {
     set({ sessions });
+  },
+
+  resetSessions: () => {
+    set({ sessions: [], lastSession: null });
   },
 
   loadFromStorage: async () => {

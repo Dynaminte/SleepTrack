@@ -1,9 +1,11 @@
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useMemo } from 'react';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 type Advice = {
   icon: string;
@@ -52,6 +54,10 @@ const categoryColor: Record<Advice['category'], string> = {
 };
 
 export default function AdviceScreen() {
+  const colorScheme = useColorScheme();
+  const theme = Colors[colorScheme ?? 'dark'];
+  const styles = useMemo(() => getStyles(theme), [theme]);
+
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safe}>
@@ -76,20 +82,22 @@ export default function AdviceScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: typeof Colors.light | typeof Colors.dark) => StyleSheet.create({
   container: { flex: 1 },
   safe: { flex: 1 },
   scroll: { padding: 20, gap: 14 },
-  sub: { color: '#64748b', marginTop: -8, marginBottom: 4 },
+  sub: { color: theme.textSecondary, marginTop: -8, marginBottom: 4 },
   card: {
-    backgroundColor: '#1e293b',
+    backgroundColor: theme.card,
     borderRadius: 14,
     padding: 16,
     gap: 8,
     borderLeftWidth: 4,
+    borderWidth: 1,
+    borderColor: theme.border,
   },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   icon: { fontSize: 22 },
-  cardTitle: { fontWeight: '600', fontSize: 15, flex: 1 },
-  cardBody: { color: '#94a3b8', lineHeight: 22 },
+  cardTitle: { fontWeight: '600', fontSize: 15, flex: 1, color: theme.text },
+  cardBody: { color: theme.textSecondary, lineHeight: 22 },
 });

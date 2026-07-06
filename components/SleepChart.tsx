@@ -38,7 +38,7 @@ export function SleepChart({ data }: Props) {
         xAxisColor="#334155"
         yAxisColor="#334155"
         noOfSections={4}
-        maxValue={10}
+        maxValue={12}
         isAnimated
         animationDuration={600}
       />

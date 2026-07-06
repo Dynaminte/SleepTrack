@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
+import { auth } from '@/lib/firebase';
 
 const isExpoGo = Platform.OS === 'ios' || Platform.OS === 'android';
 let hasNotificationSupport = !isExpoGo;
@@ -15,14 +16,17 @@ export type AlarmItem = {
   soundUri?: string;
 };
 
-const STORAGE_KEY = 'sleeptrack_alarms';
+const getStorageKey = () => {
+  const userId = auth.currentUser?.uid;
+  return userId ? `sleeptrack_alarms_${userId}` : 'sleeptrack_alarms';
+};
 
 export async function saveAlarms(alarms: AlarmItem[]) {
-  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(alarms));
+  await AsyncStorage.setItem(getStorageKey(), JSON.stringify(alarms));
 }
 
 export async function loadAlarms(): Promise<AlarmItem[]> {
-  const raw = await AsyncStorage.getItem(STORAGE_KEY);
+  const raw = await AsyncStorage.getItem(getStorageKey());
   if (!raw) {
     return [
       {

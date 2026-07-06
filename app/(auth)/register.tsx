@@ -9,7 +9,7 @@ import {
   StyleSheet,
   TextInput,
 } from 'react-native';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -38,6 +38,8 @@ export default function RegisterScreen() {
     }
     setLoading(true);
     try {
+      // Bersihkan sesi lama yang tersimpan (persistence) sebelum membuat akun baru
+      await signOut(auth).catch(() => undefined);
       await createUserWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
       // Setelah register, arahkan ke set target tidur
       router.replace('/(auth)/set-sleep-target');

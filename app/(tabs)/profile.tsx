@@ -2,10 +2,12 @@ import { Alert, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { signOut } from 'firebase/auth';
+import { useMemo } from 'react';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { auth } from '@/lib/firebase';
 import { useSleepStore } from '@/store/sleepStore';
 
@@ -29,6 +31,10 @@ export default function ProfileScreen() {
       },
     ]);
   };
+
+  const colorScheme = useColorScheme();
+  const theme = Colors[colorScheme ?? 'dark'];
+  const styles = useMemo(() => getStyles(theme), [theme]);
 
   return (
     <ThemedView style={styles.container}>
@@ -62,8 +68,8 @@ export default function ProfileScreen() {
               <Switch
                 value={notificationsEnabled}
                 onValueChange={setNotifications}
-                trackColor={{ false: '#334155', true: Colors.primaryLight }}
-                thumbColor={notificationsEnabled ? Colors.primary : '#64748b'}
+                trackColor={{ false: theme.switchTrack, true: theme.primary }}
+                thumbColor={notificationsEnabled ? theme.primary : theme.switchThumb}
               />
             </View>
 
@@ -74,24 +80,10 @@ export default function ProfileScreen() {
               <Switch
                 value={darkMode}
                 onValueChange={setDarkMode}
-                trackColor={{ false: '#334155', true: Colors.primaryLight }}
-                thumbColor={darkMode ? Colors.primary : '#64748b'}
+                trackColor={{ false: theme.switchTrack, true: theme.primary }}
+                thumbColor={darkMode ? theme.primary : theme.switchThumb}
               />
             </View>
-          </View>
-
-          {/* Riwayat & Saran */}
-          <ThemedText style={styles.sectionTitle}>Lainnya</ThemedText>
-          <View style={styles.settingsGroup}>
-            <Pressable style={styles.settingsRow} onPress={() => router.push('/(tabs)/statistics')}>
-              <ThemedText>📊 Riwayat Tidur</ThemedText>
-              <ThemedText style={styles.chevron}>›</ThemedText>
-            </Pressable>
-            <View style={styles.divider} />
-            <Pressable style={styles.settingsRow} onPress={() => router.push('/(tabs)/advice')}>
-              <ThemedText>💡 Saran Tidur</ThemedText>
-              <ThemedText style={styles.chevron}>›</ThemedText>
-            </Pressable>
           </View>
 
           {/* Tombol logout */}
@@ -104,7 +96,7 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: typeof Colors.light | typeof Colors.dark) => StyleSheet.create({
   container: { flex: 1 },
   safe: { flex: 1 },
   scroll: { padding: 20, gap: 16 },
@@ -113,23 +105,23 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: Colors.primary,
+    backgroundColor: theme.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: { fontSize: 32, color: '#fff', fontWeight: '700' },
-  email: { color: '#94a3b8' },
-  sectionTitle: { fontWeight: '600', fontSize: 14, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 },
-  settingsGroup: { backgroundColor: '#1e293b', borderRadius: 14, overflow: 'hidden' },
+  avatarText: { fontSize: 32, color: theme.onPrimary, fontWeight: '700' },
+  email: { color: theme.textSecondary },
+  sectionTitle: { fontWeight: '600', fontSize: 14, color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 },
+  settingsGroup: { backgroundColor: theme.card, borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: theme.border },
   settingsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
   },
-  settingsValue: { color: Colors.primary, fontWeight: '500' },
-  chevron: { fontSize: 22, color: '#64748b' },
-  divider: { height: 1, backgroundColor: '#334155', marginHorizontal: 16 },
+  settingsValue: { color: theme.primary, fontWeight: '500' },
+  chevron: { fontSize: 22, color: theme.textSecondary },
+  divider: { height: 1, backgroundColor: theme.border, marginHorizontal: 16 },
   logoutBtn: {
     borderRadius: 12,
     borderWidth: 1,

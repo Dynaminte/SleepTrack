@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useSleepStore } from '@/store/sleepStore';
 import { useForegroundAlarm } from '@/hooks/useForegroundAlarm';
+import { AlarmPopup } from '@/components/AlarmPopup';
 
 // Mencegah splash screen menghilang otomatis sebelum aplikasi siap
 SplashScreen.preventAutoHideAsync();
@@ -31,6 +32,8 @@ export default function RootLayout() {
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
+      {/* Popup alarm muncul di atas semua layar */}
+      <AlarmPopup />
     </ThemeProvider>
   );
-}
+}

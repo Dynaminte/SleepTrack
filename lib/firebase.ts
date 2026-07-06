@@ -14,13 +14,22 @@ const firebaseConfig = {
   measurementId: 'G-MCHE0WC0H0',
 };
 
+// Hindari inisialisasi ulang saat hot-reload
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-const auth = getApps().length
-  ? getAuth(app)
-  : initializeAuth(app, {
-      persistence: getReactNativePersistence(AsyncStorage),
-    });
+
+// Selalu gunakan initializeAuth dengan persistence — getAuth() sebagai fallback
+// jika auth sudah pernah dibuat di instance yang sama (mencegah "already initialized" error)
+let auth: ReturnType<typeof getAuth>;
+try {
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage),
+  });
+} catch {
+  // Auth sudah diinisialisasi sebelumnya (misalnya saat hot-reload)
+  auth = getAuth(app);
+}
+
 const db = getFirestore(app);
 
 export { auth, db };
-export default app;
+export default app;

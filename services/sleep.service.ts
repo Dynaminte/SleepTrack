@@ -1,8 +1,9 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
+  doc,
   getDocs,
-  orderBy,
   query,
   where,
   Timestamp,
@@ -31,6 +32,7 @@ export async function saveSleepSession(
 
 /**
  * Ambil sesi tidur milik user (default 7 hari terakhir)
+ * Filter tanggal dilakukan di client untuk menghindari kebutuhan composite index Firestore
  */
 export async function getSleepSessions(
   userId: string,
@@ -39,27 +41,33 @@ export async function getSleepSessions(
   const since = new Date();
   since.setDate(since.getDate() - limitDays);
 
+  // Query HANYA filter by userId — tidak ada composite index yang diperlukan
   const q = query(
     collection(db, COLLECTION),
-    where('userId', '==', userId),
-    where('startTime', '>=', Timestamp.fromDate(since)),
-    orderBy('startTime', 'desc')
+    where('userId', '==', userId)
   );
 
   const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => {
-    const data = doc.data();
-    return {
-      id: doc.id,
-      userId: data.userId,
-      startTime: (data.startTime as Timestamp).toDate(),
-      endTime: (data.endTime as Timestamp).toDate(),
-      durationHours: data.durationHours,
-      score: data.score,
-      note: data.note ?? '',
-    };
-  });
+  const sessions = snapshot.docs
+    .map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        userId: data.userId,
+        startTime: (data.startTime as Timestamp).toDate(),
+        endTime: (data.endTime as Timestamp).toDate(),
+        durationHours: data.durationHours,
+        score: data.score,
+        note: data.note ?? '',
+      } as SleepSession;
+    })
+    // Filter tanggal di sisi client
+    .filter((s) => s.startTime >= since);
+
+  // Sort descending (terbaru duluan) di sisi client
+  return sessions.sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
 }
+
 
 /**
  * Hitung skor kualitas tidur (0–100)
@@ -81,4 +89,17 @@ export function calculateSleepScore(
   else if (startHour >= 1 && startHour <= 2) timeScore = 10;
 
   return Math.min(durationScore + timeScore, 100);
+}
+
+/**
+ * Hapus semua sesi tidur milik user dari Firestore (untuk reset statistik)
+ */
+export async function deleteAllSleepSessions(userId: string): Promise<void> {
+  const q = query(
+    collection(db, COLLECTION),
+    where('userId', '==', userId)
+  );
+  const snapshot = await getDocs(q);
+  const deletePromises = snapshot.docs.map((d) => deleteDoc(doc(db, COLLECTION, d.id)));
+  await Promise.all(deletePromises);
 }

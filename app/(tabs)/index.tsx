@@ -8,6 +8,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useSleepStore } from '@/store/sleepStore';
 import { useSleepSession } from '@/hooks/useSleepSession';
 import { loadAlarms, saveAlarms, cancelAllAlarms, scheduleAlarm, type AlarmItem } from '@/services/alarm.service';
+import { getSleepSessions } from '@/services/sleep.service';
 import { auth } from '@/lib/firebase';
 import { Colors } from '@/constants/colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -21,7 +22,7 @@ function getGreeting(): string {
 }
 
 export default function DashboardScreen() {
-  const { lastSession } = useSleepStore();
+  const { lastSession, setLastSession } = useSleepStore();
   const { isTracking, startSleep, stopSleep } = useSleepSession();
   const [nextAlarm, setNextAlarm] = useState<AlarmItem | null>(null);
 
@@ -36,6 +37,28 @@ export default function DashboardScreen() {
     .slice(0, 2)
     .map((w: string) => w[0]?.toUpperCase() ?? '')
     .join('');
+
+  // Fetch the latest session to show on dashboard
+  useFocusEffect(
+    useCallback(() => {
+      const fetchLatestSession = async () => {
+        if (!currentUser?.uid) return;
+        try {
+          // Fetch up to 7 days, get the first one (most recent)
+          const recentSessions = await getSleepSessions(currentUser.uid, 7);
+          if (recentSessions.length > 0) {
+            setLastSession(recentSessions[0]);
+          } else {
+            // No sessions found, clear it
+            setLastSession(null as any);
+          }
+        } catch (e) {
+          console.error("Gagal memuat sesi terbaru:", e);
+        }
+      };
+      fetchLatestSession();
+    }, [currentUser?.uid])
+  );
 
   // Load next active alarm dynamically on screen focus
   useFocusEffect(
@@ -87,17 +110,20 @@ export default function DashboardScreen() {
     setNextAlarm({ ...nextAlarm, enabled: !nextAlarm.enabled });
   };
 
-  // Parse session stats if available, otherwise use mock
-  const score = lastSession?.score ?? 78;
-  const startTime = lastSession?.startTime ? new Date(lastSession.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '23:05';
-  const endTime = lastSession?.endTime ? new Date(lastSession.endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '06:20';
+  // Parse session stats if available, otherwise fallback
+  const score = lastSession?.score ?? 0;
+  const startTime = lastSession?.startTime ? new Date(lastSession.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--';
+  const endTime = lastSession?.endTime ? new Date(lastSession.endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--';
   const duration = lastSession?.durationHours 
     ? `${Math.floor(lastSession.durationHours)}j ${Math.round((lastSession.durationHours % 1) * 60)}m` 
-    : '7j 15m';
+    : '-j -m';
 
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme ?? 'dark'];
   const styles = useMemo(() => getStyles(theme), [theme]);
+
+  const badgeText = score >= 80 ? 'Baik' : score >= 60 ? 'Cukup' : score > 0 ? 'Kurang' : 'Belum Ada';
+  const badgeColor = score >= 80 ? theme.secondary : score >= 60 ? '#f59e0b' : score > 0 ? '#ef4444' : theme.textSecondary;
 
   // Circular progress math
   const radius = 72;
@@ -158,8 +184,8 @@ export default function DashboardScreen() {
             <Text style={styles.heroTitle}>Kualitas tidur semalam</Text>
             
             <View style={styles.badge}>
-              <MaterialIcons name="stars" size={16} color={theme.secondary} />
-              <Text style={styles.badgeText}>Baik</Text>
+              <MaterialIcons name="stars" size={16} color={badgeColor} />
+              <Text style={[styles.badgeText, { color: badgeColor }]}>{badgeText}</Text>
             </View>
           </View>
 
